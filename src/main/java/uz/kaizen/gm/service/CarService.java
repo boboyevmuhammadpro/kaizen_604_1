@@ -50,6 +50,7 @@ public class CarService {
         if (car==null){
             return new ApiResponse(404, "topilmadi");
         }
+        System.out.println("topildi");
         return new ApiResponse(200, "get one", car);
     }
 

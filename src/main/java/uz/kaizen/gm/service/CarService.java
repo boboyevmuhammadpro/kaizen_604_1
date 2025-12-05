@@ -51,6 +51,7 @@ public class CarService {
             return new ApiResponse(404, "topilmadi");
         }
         System.out.println("topildi");
+        System.out.println("topildi");
         return new ApiResponse(200, "get one", car);
     }
 

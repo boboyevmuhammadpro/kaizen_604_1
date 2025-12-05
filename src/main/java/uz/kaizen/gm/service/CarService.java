@@ -43,4 +43,15 @@ public class CarService {
         Page<GetAllCarWithInsonId> carPage = carRepository.findAllCarFieldNotDeledWithInson(PageRequest.of(page, 10));
         return new ApiResponse(200, "get all car not deleted", carPage.getContent());
     }
+
+
+    public ApiResponse ont(String id) {
+        Car car = carRepository.findById(id).orElse(null);
+        if (car==null){
+            return new ApiResponse(404, "topilmadi");
+        }
+        return new ApiResponse(200, "get one", car);
+    }
+
+
 }

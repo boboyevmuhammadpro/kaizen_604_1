@@ -1,0 +1,394 @@
+ssg root@ip                             - ssh ga ulanish
+
+sudo nano /etc/ssh/sshd_config          - ssh config ga kiradi 
+
+ClientAliveInterval 60                  - ssh uzulib qolmaslik uchun interval
+ClientAliveCountMax 120                 - qayta connectlar soni
+TCPKeepAlive yes                        - live qolish
+
+sudo systemctl restart sshd             - ssh ni restart qilish
+
+sudo systemctl status sshd              - ssh ni restart qilish
+
+sudo apt update                         - linuxni repositoryni update qilish
+
+sudo apt upgrade -y                     - linux sistemasini yangilash
+
+sudo apt full-upgrade -y                - to'liq tizim yangilanish kernel+major
+
+sudo apt autoremove -y                  - keraksiz paketlarni tozalash
+sudo apt autoclean
+
+sudo reboot                             - serverni qayta ishga tushurish
+
+ssh-keygen -R vpsip                     - vps reinstall bo'lganda bash ishlamay qolsa
+
+sudo apt install openssh-server -y
+
+
+(AdoptOpenJDK / Temurin — eng barqaror build)
+1-qadam: Repository qo‘shish
+
+sudo apt update
+sudo apt install -y wget apt-transport-https gnupg
+wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo gpg --dearmor -o /usr/share/keyrings/adoptium.gpg
+echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+sudo apt update
+
+sudo apt install temurin-17-jdk -y        - java 17 ni o'rnatish
+
+sudo apt install temurin-21-jdk -y        - java 21 ni o'rnatish
+
+Debian’da bir nechta Java bo‘lsa, update-alternatives orqali ulardan birini tanlaysiz:
+sudo update-alternatives --config java
+
+quyidagicha chiqadi
+Selection    Path                                  Priority   Status
+------------------------------------------------------------
+* 1          /usr/lib/jvm/temurin-17-jdk/bin/java   1711      auto mode
+  2          /usr/lib/jvm/temurin-21-jdk/bin/java   2111      manual mode
+  
+java -version                             - java versiyasini tekshiradi
+
+sudo apt install postgresql postgresql-contrib -y  -  postgresqlni o'rnatish
+
+sudo systemctl status postgresql            -   statusni ko'rish postgresqlni
+
+sudo -i -u postgres                      - postgresqlga ulanish
+psql                                     - postgresqlga ulanib undan psql ni ochish
+
+\password postgres                           - psql ga ulanib postgres user uchun parol qo'yish
+
+psql --version                          -  psql versiyasini ko'rsatadi 
+
+
+sudo nano /etc/postgresql/17/main/postgresql.conf - postgres sozlamalariga kirish
+
+#listen_addresses = 'localhost'                   - postgresqlga localdan ulanishga ruxsat
+
+listen_addresses = '*'                            - postgresqlga remote ulanishga ruxsat 
+
+sudo nano /etc/postgresql/15/main/pg_hba.conf     - remote ulanish uchun pg hub fayilni sozlash 
+
+# Masofadan ulanish uchun
+host    all             all             0.0.0.0/0            md5
+
+sudo systemctl restart postgresql                  - postgresql ni restart qilish 
+
+psql -h VPS_IP -U postgres -d postgres             - masofadan postgresql ga ulanish usuli
+
+sudo apt install ufw -y                       - ufw ni o'rnatish
+
+sudo ufw status verbose                      - ufw holatini tekshirish
+
+sudo ufw status                               - holatini tekshirish
+sudo ufw enable                               - yoqish
+sudo ufw allow 22/tcp                         - SSH portiga ruxsat
+sudo ufw allow 5432/tcp                         - PostgreSQL portiga ruxsat
+sudo ufw disable                              - ufw ni o'chirish
+
+sudo ufw status numbered                     - ruxsatlar statistikasi 
+sudo ufw delete 1|2|..                            - ruxsatlarni o'chirish
+
+
+sudo ufw allow 22/tcp     # SSH
+sudo ufw allow 80/tcp     # HTTP (Nginx)
+sudo ufw allow 443/tcp    # HTTPS (agar SSL sertifikat ishlatsangiz)
+sudo ufw allow 5432/tcp   # PostgreSQL (agar masofadan ulanish kerak bo‘lsa)
+
+sudo apt install maven -y                      - mavenni o'rnatish
+mvn -version                                    - maven versiyasini tekshirish
+
+
+sudo apt install htop -y                      - htop task manager
+F2 → Sozlamalar
+F3 → Jarayon qidirish
+F4 → Filtrlash
+F9 → Jarayonni o‘ldirish (kill)
+F10 → Chiqish
+
+sudo apt install nginx -y                          - nginx ni o'rnatish
+sudo systemctl status nginx                        - nginx statusi
+sudo ufw allow 'Nginx Full'                        - ufw ga ruxsat berish nginx uchun
+
+ls | ls -a                                         - barcha fayillarni ko'rsatish 
+echo "alias ls='ls -la --color=auto'" >> ~/.bashrc - ls qilganda automatik -a ni qo'shish
+source ~/.bashrc                                   - yuqoridagi o'zgarishlarni aktivlashtirish
+
+sudo apt update
+sudo apt install certbot python3-certbot-nginx -y   - cerbot free ssl ni o'rnatish
+
+sudo ln -s /etc/nginx/sites-available/conffilename /etc/nginx/sites-enabled/        - nginx sites available dan sites enable ga link qo'yish 
+
+sudo nginx -t                                      - nginx conf larni sintaksis to'g'riligini tekshirish
+
+sudo systemctl reload nginx                        - nginx ni reload qilish
+
+sudo certbot --nginx -d javahack.uz -d www.javahack.uz  - sertificat so'rash
+sudo certbot --nginx -d javatech.uz -d www.javatech.uz  - yuqoridagidek
+
+sudo certbot renew --dry-run              - sertificat automatik yangilanadimi yoqmi tekshirish
+
+
+
+nginx sozlamalari -------------------------------------------------
+
+
+
+
+
+server {
+    server_name javahack.uz www.javahack.uz;
+
+    root /var/www/bushidouz/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:9292/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /v3/api-docs {
+        proxy_pass http://localhost:9292/v3/api-docs;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /swagger-ui/ {
+        proxy_pass http://localhost:9292/swagger-ui/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/javahack.uz/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/javahack.uz/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+server {
+    if ($host = www.javahack.uz) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = javahack.uz) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name javahack.uz www.javahack.uz;
+    listen 80;
+    return 404; # managed by Certbot
+}
+
+
+
+
+
+
+
+nginx sozlamalari -------------------------------------------------
+
+
+
+
+
+docker--------------------------------------------------------------
+
+
+
+
+
+
+
+
+# 1. Yangilash va kerakli paketlarni o'rnatish
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg lsb-release
+
+# 2. Docker GPG kalitini qo'shish
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# 3. Docker repository ni qo'shish
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+ 4. Repositoryni yangilash
+sudo apt update
+
+# 5. Docker Engine, CLI va containerd o'rnatish
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+
+
+# Docker servisini ishga tushirish
+sudo systemctl start docker
+
+# Docker har doim tizim yuklanganda ishga tushishi
+sudo systemctl enable docker
+
+# Docker holatini tekshirish
+sudo systemctl status docker
+
+docker compose version
+
+docker --version
+
+
+docker ps           -  ishlab turgan containerlar
+
+Konteyner ichiga kirish:
+
+docker exec -it myubuntu /bin/bash         - myubuntu — konteyner nomi (yoki ID si)   /bin/bash — bash shell ochish 
+
+docker exec -it myubuntu /bin/sh           - Agar bash mavjud bo‘lmasa, /bin/sh ham ishlaydi:
+
+
+
+
+
+docker--------------------------------------------------------------
+
+
+
+docker default script --------------------------------------------------------------------------------
+fayilnomi docker_setuo.sh bo'ladi
+
+
+#!/bin/bash
+
+# --- Konfiguratsiya (skript ichida qat’iy) ---
+POSTGRES_CONTAINER=vps_db
+POSTGRES_USER=vps_root
+POSTGRES_PASSWORD=vps_root
+POSTGRES_DB=vps_db
+POSTGRES_PORT=5432
+POSTGRES_SHARED_BUFFERS=500MB
+POSTGRES_MAX_CONNECTIONS=200
+
+REDIS_CONTAINER=vps_redis
+REDIS_PORT=6379
+REDIS_MAX_MEMORY=500mb
+REDIS_POLICY=allkeys-lru
+
+NETWORK_NAME=vps_network
+POSTGRES_VOLUME=pg_data
+REDIS_VOLUME=redis_data
+
+# --- Docker network yaratish (agar yo'q bo'lsa) ---
+if ! docker network ls --format '{{.Name}}' | grep -wq "$NETWORK_NAME"; then
+    echo "Creating Docker network: $NETWORK_NAME"
+    docker network create $NETWORK_NAME
+else
+    echo "Docker network $NETWORK_NAME already exists. Skipping..."
+fi
+
+# --- PostgreSQL konteynerini yaratish (agar yo'q bo'lsa) ---
+if ! docker ps -a --format '{{.Names}}' | grep -wq "$POSTGRES_CONTAINER"; then
+    echo "Creating PostgreSQL container: $POSTGRES_CONTAINER"
+    docker volume create $POSTGRES_VOLUME
+    docker run -d --restart unless-stopped \
+      --name $POSTGRES_CONTAINER \
+      --network $NETWORK_NAME \
+      -e POSTGRES_USER=$POSTGRES_USER \
+      -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+      -e POSTGRES_DB=$POSTGRES_DB \
+      -v $POSTGRES_VOLUME:/var/lib/postgresql/data \
+      -p $POSTGRES_PORT:5432 \
+      postgres:15 \
+      -c shared_buffers=$POSTGRES_SHARED_BUFFERS \
+      -c max_connections=$POSTGRES_MAX_CONNECTIONS
+else
+    echo "PostgreSQL container $POSTGRES_CONTAINER already exists. Skipping..."
+fi
+
+# --- Redis konteynerini yaratish (agar yo'q bo'lsa) ---
+if ! docker ps -a --format '{{.Names}}' | grep -wq "$REDIS_CONTAINER"; then
+    echo "Creating Redis container: $REDIS_CONTAINER"
+    docker volume create $REDIS_VOLUME
+    docker run -d --restart unless-stopped \
+      --name $REDIS_CONTAINER \
+      --network $NETWORK_NAME \
+      -v $REDIS_VOLUME:/data \
+      -p $REDIS_PORT:6379 \
+      redis:7 \
+      redis-server --maxmemory $REDIS_MAX_MEMORY --maxmemory-policy $REDIS_POLICY
+else
+    echo "Redis container $REDIS_CONTAINER already exists. Skipping..."
+fi
+
+echo "Setup complete!"
+
+
+docker default script --------------------------------------------------------------------------------
+
+chmod +x docker_setup.sh                       - scriptni ishga tushurishga ruxsat berish kerak
+
+./docker_setup.sh                             - ishga tushurish
+
+bash docker_setup.sh                           - ishga tushurish 2
+
+docker network ls                           - networklar ro'yxati
+
+docker exec -it vps_db /bin/bash            - docker ichidagi containerga kirish
+
+psql -U vps_root -d vps_db                  - containerga kirgach db ga ulanish
+
+
+ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/github_actions      -         githubdan vps ga ulanish uchun yaratiladi 
+
+cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys                -    Public key’ni VPS’ning authorized_keys fayliga qo‘shish:
+
+Private key’ni GitHub Actions secrets’ga qo‘shish:
+
+Repository → Settings → Secrets → Actions → VPS_SSH_KEY
+
+ssh-keygen -t ed25519 -C "deploy-key" -f ~/.ssh/kaktus-key             -    vps dan githubga ulanish uchun kerak
+
+GitHub repository → Settings → Deploy keys → Add deploy key
+Public key (.pub) ni joylashtirish
+Allow write access agar VPS dan push ham qilmoqchi bo‘lsangiz, aks holda faqat pull yetarli
+
+VPS da SSH config qilish (ixtiyoriy, tavsiya qilinadi)
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/myapp
+
+Host kaktus_github.com
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/kaktus
+
+Host bushido_github.com
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/bushido
+
+Host bushido_frontend_github.com
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/bushido_frontend_key
+    
+    
+    
+    
+
